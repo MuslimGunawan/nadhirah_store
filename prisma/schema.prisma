@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model StoreSettings {
+  id                  Int      @id @default(1)
+  storeName           String   @default("Nadhirah Store")
+  logoUrl             String?
+  tagline             String?  @default("Koleksi Busana Muslimah Elegan & Bersahaja")
+  whatsappNumber      String   @default("6281234567890")
+  waMessageTemplate   String   @default("Halo Kak {store_name}, saya ingin memesan:\n- Produk: {product_name}\n- Varian: {variant}\n- Harga: {price}\n- Link: {product_url}\n\nApakah masih tersedia?")
+  themeColor          String   @default("rose") // rose, terracotta, sage, gold, noir
+  socialLinks         String?  // JSON string: { "instagram": "@nadhirahstore", "tiktok": "@nadhirahstore" }
+  address             String?  @default("Jl. Melati No. 18, Jakarta Selatan")
+  operationalHours    String?  @default("Senin - Sabtu: 09.00 - 18.00 WIB")
+  updatedAt           DateTime @updatedAt
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  imageUrl  String?
+  products  Product[]
+}
+
+model Product {
+  id            Int              @id @default(autoincrement())
+  categoryId    Int
+  category      Category         @relation(fields: [categoryId], references: [id])
+  storeId       Int              @default(1) // Siap multi-toko / reseller masa depan
+  name          String
+  slug          String           @unique
+  description   String
+  price         Float
+  discountPrice Float?
+  isFeatured    Boolean          @default(false)
+  status        String           @default("active") // active | inactive | pre_order | sold_out
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  images        ProductImage[]
+  variants      ProductVariant[]
+}
+
+model ProductImage {
+  id            Int     @id @default(autoincrement())
+  productId     Int
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  imageUrl      String
+  isWatermarked Boolean @default(false)
+  orderIndex    Int     @default(0)
+}
+
+model ProductVariant {
+  id          Int     @id @default(autoincrement())
+  productId   Int
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantName String
+  stock       Int     @default(0)
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("owner") // Siap untuk role "reseller" nanti
+  createdAt    DateTime @default(now())
+}
+
+model Banner {
+  id         Int      @id @default(autoincrement())
+  imageUrl   String
+  title      String?
+  subtitle   String?
+  linkUrl    String?
+  orderIndex Int      @default(0)
+  isActive   Boolean  @default(true)
+}
