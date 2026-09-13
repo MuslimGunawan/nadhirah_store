@@ -59,20 +59,28 @@ Website etalase busana muslimah elegan dengan model transaksi **manual via Whats
 
 Proyek ini dibangun menggunakan **Next.js App Router** yang merupakan framework resmi dari Vercel, sehingga 100% didukung secara native.
 
-### ⚠️ Catatan Penting Mengenai Basis Data di Vercel:
-Karena Vercel beroperasi secara *serverless* (sistem file lokal bersifat *read-only* saat di-deploy), untuk menyimpan data produk baru atau perubahan profil toko secara permanen di cloud, Anda disarankan menggunakan database PostgreSQL gratis seperti:
-- **[Supabase](https://supabase.com)** (PostgreSQL gratis)
-- **[Neon](https://neon.tech)** (Serverless PostgreSQL gratis)
-- **[Prisma Postgres](https://www.prisma.io/postgres)**
+### 🎉 Proyek Supabase Sudah Dibuatkan & Di-Seed Otomatis:
+Proyek Supabase resmi telah dibuatkan langsung melalui MCP di akun Anda:
+- **Nama Proyek**: `nadhirah-store`
+- **Project Ref**: `uplakqtxwrrhzpmxveii`
+- **Region**: Singapore (`ap-southeast-1`)
+- **API URL**: `https://uplakqtxwrrhzpmxveii.supabase.co`
+- **Dashboard Supabase**: [https://supabase.com/dashboard/project/uplakqtxwrrhzpmxveii](https://supabase.com/dashboard/project/uplakqtxwrrhzpmxveii)
+- **Status Tabel**: Seluruh 7 tabel (`StoreSettings`, `Category`, `Product`, `ProductImage`, `ProductVariant`, `Admin`, `Banner`) telah dibuat dan data awal (katalog pakaian, admin `admin@nadhirah.com`) sudah otomatis di-seed ke dalamnya!
 
-### Langkah-langkah Deploy:
-1. Push kode ke GitHub (`MuslimGunawan/nadhirah_store`).
-2. Buka dashboard [Vercel](https://vercel.com) dan klik **Add New Project** &rarr; **Import** repository `nadhirah_store`.
-3. Di bagian **Environment Variables**, tambahkan:
-   - `DATABASE_URL`: URL koneksi database PostgreSQL Anda (dari Supabase / Neon)
-   - `ADMIN_JWT_SECRET`: Kunci rahasia acak untuk keamanan sesi login admin
-   - `NEXT_PUBLIC_BASE_URL`: Domain Vercel Anda (misal: `https://nadhirah-store.vercel.app`)
-4. Klik **Deploy**! Vercel akan otomatis meng-compile dan website Anda langsung online di seluruh dunia.
+### Langkah Menghubungkan ke Vercel:
+1. Buka [Pengaturan Database Supabase Anda](https://supabase.com/dashboard/project/uplakqtxwrrhzpmxveii/settings/database).
+2. Jika belum mengatur password database, klik **Reset Database Password** dan buat password yang kuat.
+3. Salin connection string **URI** (pilih mode *Transaction* atau *Session*), contoh:
+   ```env
+   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+   ```
+4. Di dashboard Vercel, tambahkan Environment Variables:
+   - `DATABASE_URL`: Connection string Supabase Anda
+   - `ADMIN_JWT_SECRET`: `nadhirah-store-super-secret-session-key-2026`
+   - `NEXT_PUBLIC_BASE_URL`: `https://your-domain.vercel.app`
+5. Jika ingin menggunakan PostgreSQL di Prisma untuk deploy Vercel, ubah baris `provider = "sqlite"` menjadi `provider = "postgresql"` di `prisma/schema.prisma`.
+6. Klik **Deploy** di Vercel!
 
 ---
 
