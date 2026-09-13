@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MessageCircle, Share2, Check, AlertCircle } from "lucide-react";
+import { MessageCircle, Share2, Check, AlertCircle, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { generateWhatsAppLink, formatPrice } from "@/lib/store";
 
 interface Variant {
@@ -17,7 +18,7 @@ interface ProductDetailActionProps {
     slug: string;
     price: number;
     discountPrice: number | null;
-    status: string; // active | inactive | pre_order | sold_out
+    status: string;
     variants: Variant[];
   };
   settings: {
@@ -64,20 +65,19 @@ export default function ProductDetailAction({
       try {
         await navigator.share({
           title: product.name,
-          text: `Lihat ${product.name} di ${settings.storeName}`,
+          text: `Lihat koleksi ${product.name} di ${settings.storeName}`,
           url: productUrl || window.location.href,
         });
         return;
       } catch {
-        // Fallback to clipboard if share was dismissed or cancelled
+        // Fallback to clipboard
       }
     }
 
-    // Fallback: Copy to clipboard
     try {
       await navigator.clipboard.writeText(productUrl || window.location.href);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => setCopied(false), 2800);
     } catch {
       // Ignored
     }
@@ -94,7 +94,22 @@ export default function ProductDetailAction({
   });
 
   return (
-    <div className="space-y-6 pt-2">
+    <div className="space-y-6 pt-3 relative">
+      {/* Toast Notification for Copied Link */}
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: -12, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.95 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-full bg-stone-900 text-white px-5 py-2.5 shadow-2xl flex items-center gap-2.5 text-xs font-semibold tracking-wide border border-stone-700"
+          >
+            <Check className="h-4 w-4 text-emerald-400" />
+            <span>Tautan produk berhasil disalin ke clipboard!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Variant Selection */}
       {product.variants.length > 0 && (
         <div className="space-y-3">
@@ -104,7 +119,7 @@ export default function ProductDetailAction({
             </span>
             {selectedVariant && (
               <span
-                className={`font-medium ${
+                className={`font-semibold transition-colors ${
                   selectedVariant.stock <= 0
                     ? "text-rose-600"
                     : selectedVariant.stock <= 3
@@ -113,10 +128,10 @@ export default function ProductDetailAction({
                 }`}
               >
                 {selectedVariant.stock <= 0
-                  ? "Stok Habis"
+                  ? "Varian Ini Habis"
                   : selectedVariant.stock <= 3
-                  ? `Tersisa ${selectedVariant.stock} pcs`
-                  : "Stok Tersedia"}
+                  ? `Stok Terbatas: Sisa ${selectedVariant.stock} pcs`
+                  : `Stok Tersedia (${selectedVariant.stock} pcs)`}
               </span>
             )}
           </div>
@@ -127,82 +142,92 @@ export default function ProductDetailAction({
               const isOut = v.stock <= 0;
 
               return (
-                <button
+                <motion.button
                   key={v.id}
+                  whileTap={{ scale: 0.96 }}
+                  type="button"
                   onClick={() => setSelectedVariantId(v.id)}
-                  className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium border transition-all duration-200 cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border transition-all duration-200 cursor-pointer ${
                     isSelected
-                      ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-xs"
+                      ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm ring-2 ring-[var(--accent)]/20"
                       : isOut
-                      ? "border-[var(--border)] bg-[var(--muted-light)] text-[var(--muted)] opacity-60 hover:opacity-100"
-                      : "border-[var(--border)] bg-white text-[var(--foreground)] hover:border-[var(--accent)]"
+                      ? "border-[var(--border)] bg-stone-100/70 text-stone-400 line-through opacity-70"
+                      : "border-[var(--border)] bg-white text-[var(--foreground)] hover:border-stone-400 hover:shadow-2xs"
                   }`}
                 >
                   <span>{v.variantName}</span>
-                  {isOut && <span className="ml-1 text-[10px] text-rose-500">(Habis)</span>}
-                </button>
+                </motion.button>
               );
             })}
           </div>
 
           {!selectedVariantId && product.variants.length > 1 && (
-            <p className="text-xs text-amber-700 flex items-center gap-1">
-              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-              <span>Harap pilih salah satu varian sebelum memesan</span>
-            </p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs text-amber-700 flex items-center gap-1.5 font-medium"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Harap pilih salah satu varian sebelum melanjutkan ke WhatsApp</span>
+            </motion.p>
           )}
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        {/* Main WhatsApp CTA */}
-        <a
+      <div className="flex flex-col sm:flex-row gap-3 pt-1">
+        {/* Main WhatsApp CTA with spring hover & subtle ripple */}
+        <motion.a
           href={canOrder ? waUrl : undefined}
           target="_blank"
           rel="noopener noreferrer"
           aria-disabled={!canOrder}
-          className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl py-4 px-6 text-sm sm:text-base font-semibold transition-all duration-200 shadow-xs ${
+          whileHover={canOrder ? { scale: 1.02, y: -2 } : {}}
+          whileTap={canOrder ? { scale: 0.98 } : {}}
+          className={`flex-1 flex items-center justify-center gap-3 rounded-2xl py-4 px-6 text-sm sm:text-base font-semibold transition-all duration-200 shadow-md ${
             canOrder
-              ? "bg-[#25D366] text-white hover:bg-[#20bd5a] hover:shadow-md cursor-pointer transform hover:-translate-y-0.5"
+              ? "bg-[#25D366] text-white hover:bg-[#20bd5a] hover:shadow-lg cursor-pointer"
               : "bg-stone-200 text-stone-400 cursor-not-allowed pointer-events-none"
           }`}
         >
-          <MessageCircle className="h-5 w-5 fill-current shrink-0" />
+          <MessageCircle className="h-5 w-5 fill-current shrink-0 animate-bounce sm:animate-none" />
           <span>
             {isSoldOut
               ? "Stok Produk Habis"
               : isPreOrder
-              ? "Pre-Order via WhatsApp"
-              : "Pesan via WhatsApp"}
+              ? "Pesan Pre-Order via WhatsApp"
+              : "Pesan via WhatsApp Sekarang"}
           </span>
-        </a>
+        </motion.a>
 
-        {/* Share / Copy Link Button */}
-        <button
+        {/* Share Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          type="button"
           onClick={handleShare}
-          className="flex items-center justify-center gap-2 rounded-xl py-4 px-5 border border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--muted-light)] hover:border-stone-400 transition-colors text-sm font-medium cursor-pointer"
-          title="Salin link produk"
+          className="flex items-center justify-center gap-2 rounded-2xl py-4 px-6 border border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-stone-50 hover:border-stone-400 transition-colors text-xs sm:text-sm font-semibold cursor-pointer shadow-2xs"
+          title="Salin dan bagikan link produk"
         >
           {copied ? (
             <>
               <Check className="h-4 w-4 text-emerald-600" />
-              <span className="text-emerald-700">Link Tersalin!</span>
+              <span className="text-emerald-700 font-semibold">Tersalin!</span>
             </>
           ) : (
             <>
-              <Share2 className="h-4 w-4 text-[var(--muted)]" />
+              <Share2 className="h-4 w-4 text-stone-500" />
               <span>Bagikan</span>
             </>
           )}
-        </button>
+        </motion.button>
       </div>
 
-      {/* Customer Assurance Info */}
+      {/* Trust & Assurance Details */}
       <div className="pt-4 border-t border-[var(--border)] grid grid-cols-2 gap-3 text-xs text-[var(--muted)]">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-          <span>Transaksi Langsung & Aman</span>
+          <span>Transaksi Langsung & Terpercaya</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[var(--accent)]"></span>
