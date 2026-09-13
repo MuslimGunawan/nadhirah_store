@@ -7,8 +7,8 @@ import { ShieldCheck, Lock, Mail, AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@nadhirah.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Gagal masuk, periksa data Anda");
+        setError(data.error || "Gagal masuk, periksa email atau kata sandi Anda");
         setLoading(false);
         return;
       }
@@ -35,13 +35,13 @@ export default function AdminLoginPage() {
       router.push("/admin/dashboard");
       router.refresh();
     } catch {
-      setError("Terjadi kesalahan jaringan");
+      setError("Terjadi kesalahan jaringan, silakan coba lagi");
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto my-12">
+    <div className="w-full max-w-md mx-auto my-12 px-4">
       <div className="mb-6 text-center">
         <Link
           href="/"
@@ -61,15 +61,8 @@ export default function AdminLoginPage() {
             Masuk Pengelola Toko
           </h1>
           <p className="text-xs text-stone-500">
-            Kelola produk, ubah informasi toko & nomor WhatsApp
+            Akses dashboard manajemen Nadhirah Store
           </p>
-        </div>
-
-        {/* Quick Credential Hint for Store Owner */}
-        <div className="mb-5 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 space-y-1">
-          <p className="font-semibold">Akun Login Default (Siap Pakai):</p>
-          <p>Email: <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">admin@nadhirah.com</code></p>
-          <p>Password: <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">admin123</code></p>
         </div>
 
         {error && (
@@ -89,9 +82,10 @@ export default function AdminLoginPage() {
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@nadhirah.com"
+                placeholder="nama@domain.com"
                 className="w-full rounded-xl border border-stone-200 bg-white pl-10 pr-4 py-2.5 text-sm text-stone-900 focus:outline-hidden focus:border-stone-800 focus:ring-1 focus:ring-stone-800"
               />
             </div>
@@ -106,6 +100,7 @@ export default function AdminLoginPage() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
