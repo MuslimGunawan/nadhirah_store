@@ -9,18 +9,25 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email dan password wajib diisi" },
+        { error: "Username dan password wajib diisi" },
         { status: 400 }
       );
     }
 
-    const admin = await prisma.admin.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const identifier = (email || "").toLowerCase().trim();
+
+    const admin = await prisma.admin.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { email: `${identifier}@nadhirah.com` },
+        ],
+      },
     });
 
     if (!admin) {
       return NextResponse.json(
-        { error: "Email atau password tidak sesuai" },
+        { error: "Username atau kata sandi tidak sesuai" },
         { status: 401 }
       );
     }
@@ -28,7 +35,7 @@ export async function POST(request: NextRequest) {
     const isMatch = await bcrypt.compare(password, admin.passwordHash);
     if (!isMatch) {
       return NextResponse.json(
-        { error: "Email atau password tidak sesuai" },
+        { error: "Username atau kata sandi tidak sesuai" },
         { status: 401 }
       );
     }
